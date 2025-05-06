@@ -8,7 +8,7 @@ import model.Patient;
 public class PatientService {
 
     static {
-        try (Connection conn = DatabaseUtil.getConnection()) { // <== FIXED: use DatabaseUtil
+        try (Connection conn = DatabaseUtil.getConnection()) { 
             String sql = """
                 CREATE TABLE IF NOT EXISTS patients (
                     id INT AUTO_INCREMENT PRIMARY KEY,

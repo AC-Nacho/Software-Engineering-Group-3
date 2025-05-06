@@ -5,68 +5,64 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.*;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.sql.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import model.Patient;
-import service.PatientService;
+import model.Doctor;
+import service.DoctorService;
 
-public class PatientHandler implements HttpHandler {
+public class DoctorHandler implements HttpHandler {
 
-    private final PatientService patientService = new PatientService();
+    private final DoctorService doctorService = new DoctorService();
 
     @Override
 public void handle(HttpExchange exchange) throws IOException {
     if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
         Map<String, String> formData = parseFormData(exchange);
 
-        Patient patient = new Patient(
-            0, 
+        Doctor doctor = new Doctor(
+            0,
             formData.get("username"),
-            formData.get("password"),
             formData.get("fname"),
             formData.get("lname"),
-            formData.get("ssn"),
-            Date.valueOf(formData.get("dob")),
             formData.get("phoneNum"),
-            formData.get("address")
+            formData.get("specialty")
         );
 
-        patientService.addPatient(patient);
+        doctorService.addDoctor(doctor);
 
-       
-    exchange.getResponseHeaders().set("Location", "/patients");
-    exchange.sendResponseHeaders(303, -1); 
+        // Redirect after successful POST to show the updated list
+    exchange.getResponseHeaders().set("Location", "/doctors");
+    exchange.sendResponseHeaders(303, -1); // 303 = See Other
 
     } else if ("GET".equalsIgnoreCase(exchange.getRequestMethod())) {
-    List<Patient> patients = patientService.getAllPatients();
+    List<Doctor> doctors = doctorService.getAllDoctors();
 
     StringBuilder response = new StringBuilder();
     response.append("<html><body style='font-family: Arial;'>");
-    response.append("<h2>Registered Patients</h2>");
+    response.append("<h2>Registered Doctors</h2>");
 
-    if (patients.isEmpty()) {
-        response.append("<p>No patients registered yet.</p>");
+    if (doctors.isEmpty()) {
+        response.append("<p>No doctors registered yet.</p>");
     } else {
         response.append("<table border='1' cellpadding='8' cellspacing='0'>");
-        response.append("<tr><th>ID</th><th>Name</th><th>Username</th><th>DOB</th><th>Phone</th><th>Address</th></tr>");
+        response.append("<tr><th>ID</th><th>DoctorID</th><th>Name</th></th><th>Phone Number</th><th>Specialty</tr>");
 
-        for (Patient p : patients) {
+        for (Doctor p : doctors) {
             response.append("<tr>")
-                    .append("<td>").append(p.getPatientID()).append("</td>")
-                    .append("<td>").append(p.getFname()).append(" ").append(p.getLname()).append("</td>")
+                    .append("<td>").append(p.getDoctorID()).append("</td>")
                     .append("<td>").append(p.getUsername()).append("</td>")
-                    .append("<td>").append(p.getDob()).append("</td>")
+                    .append("<td>").append(p.getFname()).append(" ").append(p.getLname()).append("</td>")
+             
                     .append("<td>").append(p.getPhoneNum()).append("</td>")
-                    .append("<td>").append(p.getAddress()).append("</td>")
+                    .append("<td>").append(p.getSpecialty()).append("</td>")
                     .append("</tr>");
         }
 
         response.append("</table>");
     }
 
-    response.append("<br><a href=\"/forms\">Register Another Patient</a>");
+    response.append("<br><a href=\"/doctorforms\">Register Another Doctor</a>");
     response.append("</body></html>");
 
     byte[] bytes = response.toString().getBytes();
@@ -77,7 +73,6 @@ public void handle(HttpExchange exchange) throws IOException {
 }
 
 }
-
 
     private Map<String, String> parseFormData(HttpExchange exchange) throws IOException {
         InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8);
